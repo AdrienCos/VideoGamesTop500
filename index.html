@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <style>
+    body {
+      margin:0;position:fixed;top:0;right:0;bottom:0;left:0;
+    }
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background-color: white;
+		}
+    .svg {
+      background-color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    // Feel free to change or delete any of the code you see in this editor!
+    var svg = d3.select("body").append("svg")
+    	.attr("class", "svg")
+      .attr("width", 960)
+      .attr("height", 800)
+			.on("click", function(d) {
+      	d3.selectAll(".mark")
+        .style("opacity", 0.7)
+   		})
+
+
+    var x = d3.scaleLinear()
+    	.range([100,800])
+
+    var y = d3.scaleLog()
+    	.range([600,100])
+
+    var r = d3.scaleLinear()
+			.range([1,10])
+
+    var criticScore = d3.scaleLinear()
+    	.range([1,10])
+
+    var tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0)
+
+    d3.text('VideoGamesShort.csv', function(error, raw) {
+      var dsv = d3.dsvFormat(",");
+      var data = dsv.parse(raw);
+
+    data.forEach(function(d) {
+      d.Global_Sales = +d.Global_Sales;
+      d.EU_Sales = +d.EU_Sales;
+      d.NA_Sales = +d.NA_Sales;
+      d.JP_Sales = +d.JP_Sales;
+      d.Other_Sales = +d.Other_Sales;
+      d.Year_of_Release = +d.Year_of_Release;
+      d.Critic_Score = +d.Critic_Score;
+      d.User_Score = +d.User_Score;
+    })
+
+    var platformSales = [];
+      data.forEach(function(d) {
+        if (typeof(platformSales[d.Platform]) === "undefined") {
+          platformSales[d.Platform] = 0;
+        }
+        platformSales[d.Platform] += d.Global_Sales
+      })
+      console.log(platformSales)
+
+
+
+
+    x.domain(d3.extent(data, function(d) {return d.Year_of_Release}))
+    y.domain(d3.extent(data, function(d) {return d.Global_Sales}))
+    r.domain(d3.extent(data, function(d) {return d.Critic_Score}))
+		criticScore.domain(d3.extent(data, function(d) {return d.Critic_Score}))
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+    var xAxis = d3.axisBottom().scale(x);
+		var yAxis = d3.axisLeft().scale(y);
+
+    svg.append("g")
+    	.attr("class", "x axis")
+    	.attr("transform", "translate(0, 620)")
+    	.call(xAxis)
+
+    svg.append("text")
+    	.attr("x", 30)
+    	.attr("y", 80)
+    	.attr("class", "label")
+    	.text("Global Sales")
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(80, 0)")
+      .call(yAxis)
+
+    svg.append("text")
+      .attr("x", 830)
+      .attr("y", 630)
+      .attr("class", "label")
+      .text("Year of Release")
+    /*
+    svg.selectAll("dot").data(data).enter()
+    	.filter(function(d) {return !isNaN(d.Year_of_Release)})
+    	.append("circle")
+    	.attr("class", "dot")
+    	.attr("cx", function(d) {return x(d.Year_of_Release)} )
+    	.attr("cy", function(d) {return y(d.Global_Sales)} )
+    	.attr("r", function(d) {return r(d.Critic_Score)})
+    	.style("fill", function(d, i) { return color(d.Platform)})
+    	.style("stroke", "black")
+    	.style("opacity", 0.7)
+      .on("mouseover", function(d) {
+          tooltip.transition()
+            .duration(0)
+            .style("opacity", 0.9);
+          tooltip.html("Name : " + d.Name + '<br>Publisher : '+ d.Publisher)
+            .style("left", (d3.event.pageX + 15) + "px")
+            .style("top", (d3.event.pageY - 25) + "px");
+        })
+    	.on("mouseout", function(d) {
+      	tooltip.transition()
+        	.duration(200)
+        	.style("opacity", 0)
+    })
+    */
+
+    svg.selectAll("rect").data(data).enter()
+    	.filter(function(d) {return !isNaN(d.Year_of_Release)})
+    	.append("rect")
+    	.attr("class", "mark")
+    	.attr("x", function(d) {return x(d.Year_of_Release) - 21 +  30 * Math.random()} )
+    	.attr("y", function(d) {return y(d.Global_Sales) - 3})
+    	.attr("width", 15)
+    	.attr("height", function(d) {return criticScore(d.Critic_Score)})
+      .style("fill", function(d, i) { return color(d.Platform)})
+    	.style("opacity", 0.7)
+      .on("mouseover", function(d) {
+      tooltip.transition()
+          .duration(0)
+          .style("opacity", 0.9);
+        tooltip.html("Name : " + d.Name + '<br>Publisher : '+ d.Publisher)
+          .style("left", (d3.event.pageX + 15) + "px")
+          .style("top", (d3.event.pageY - 25) + "px");
+      })
+      .on("mouseout", function(d) {
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 0)
+      })
+
+
+    var legend = svg.selectAll(".legend")
+    	.data(color.domain())
+    	.enter().append("g")
+    	.attr("class", "legend")
+    	.attr("transform", function(d, i) {return "translate(0,"+(80+i*20)+")";})
+
+    legend.append("rect")
+    	.attr("x", 850)
+    	.attr("height", 18)
+    	.attr("width", 18)
+    	.style("fill", color)
+    	.on("click", function(d) {
+      	d3.selectAll(".mark").style("opacity", 0.7)
+        	.transition(500);
+      	d3.selectAll(".mark")
+        	.transition(500)
+        	.filter(function(e) {
+          	return d !== e.Platform
+        	})
+        	.style("opacity", 0.1)
+   			})
+
+    legend.append("text")
+    	.attr("x", 870)
+    	.attr("y", 15)
+    	.attr("text-anchor", "start")
+    	.text(function(d) {return d;})
+
+
+
+
+  });
+
+  </script>
+</body>
