@@ -40,7 +40,7 @@
 			.range([1,10])
 
     var criticScore = d3.scaleLinear()
-    	.range([1,6])
+    	.range([1,10])
 
     var tooltip = d3.select("body").append("div")
       .attr("class", "tooltip")
@@ -68,9 +68,10 @@
         }
         platformSales[d.Platform] += d.Global_Sales
       })
-      console.log(platformSales)
 
-
+    var platformScale = d3.scaleLinear()
+    	.domain(d3.extent(data, function(d) {return platformSales[d.Platform]}))
+    	.range([10, 200])
 
 
     x.domain(d3.extent(data, function(d) {return d.Year_of_Release}))
@@ -136,9 +137,9 @@
     	.attr("transform", function(d, i) {return "translate(0,"+(80+i*20)+")";})
 
     legend.append("rect")
-    	.attr("x", 850)
+    	.attr("x", function(d) {return 860 - platformScale(platformSales[d])})
     	.attr("height", 18)
-    	.attr("width", 18)
+    	.attr("width", function(d) {return platformScale(platformSales[d])})
     	.style("fill", color)
     	.on("click", function(d) {
       	d3.selectAll(".mark").style("opacity", 0.7)
@@ -156,6 +157,16 @@
     	.attr("y", 15)
     	.attr("text-anchor", "start")
     	.text(function(d) {return d;})
+      .on("click", function(d) {
+          d3.selectAll(".mark").style("opacity", 0.7)
+            .transition(500);
+          d3.selectAll(".mark")
+            .transition(500)
+            .filter(function(e) {
+              return d !== e.Platform
+            })
+            .style("opacity", 0.1)
+          })
 
 
 
