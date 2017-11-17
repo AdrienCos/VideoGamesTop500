@@ -5,6 +5,7 @@
   <style>
     body {
       margin:0;position:fixed;top:0;right:0;bottom:0;left:0;
+      font-family: sans-serif;
     }
     .tooltip {
       position: absolute;
@@ -14,6 +15,13 @@
     .svg {
       background-color: white;
     }
+    .legendRect, .legendText, .mark{
+      cursor: pointer;
+    }
+    .xaxis, .yaxis {
+      font-size: 1em;
+    }
+
   </style>
 </head>
 
@@ -84,7 +92,7 @@
 		var yAxis = d3.axisLeft().scale(y);
 
     svg.append("g")
-    	.attr("class", "x axis")
+    	.attr("class", "xaxis")
     	.attr("transform", "translate(0, 620)")
     	.call(xAxis)
 
@@ -95,7 +103,7 @@
     	.text("Global Sales")
 
     svg.append("g")
-      .attr("class", "y axis")
+      .attr("class", "yaxis")
       .attr("transform", "translate(80, 0)")
       .call(yAxis)
 
@@ -137,6 +145,7 @@
     	.attr("transform", function(d, i) {return "translate(0,"+(80+i*20)+")";})
 
     legend.append("rect")
+    	.attr("class", "legendRect")
     	.attr("x", function(d) {return 860 - platformScale(platformSales[d])})
     	.attr("height", 18)
     	.attr("width", function(d) {return platformScale(platformSales[d])})
@@ -153,6 +162,7 @@
    			})
 
     legend.append("text")
+    	.attr("class", "legendText")
     	.attr("x", 870)
     	.attr("y", 15)
     	.attr("text-anchor", "start")
